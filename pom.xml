@@ -20,7 +20,7 @@
 
   <groupId>com.qubole.spark</groupId>
   <artifactId>spark-rocksdb-state-store_2.11</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>RocksDB State Store for Structured Streaming</name>
   <description>RocksDB based State Storage for Structured Streaming Applications</description>
