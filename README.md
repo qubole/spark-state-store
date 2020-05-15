@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/qubole/kinesis-sql.svg?branch=master)](https://travis-ci.org/qubole/kinesis-sql)
+[![Build Status](https://travis-ci.org/qubole/spark-state-store.svg?branch=master)](https://travis-ci.org/qubole/spark-state-store)
 
 # Rocksdb State Store for Structured Streaming 
 
