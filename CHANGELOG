@@ -1,0 +1,17 @@
+Changelog
+=========
+
+
+(unreleased)
+------------
+- [maven-release-plugin] prepare for next development iteration. [Vikram
+  Agrawal]
+- [maven-release-plugin] prepare release spark-rocksdb-state-
+  store_2.11-1.0.0. [Vikram Agrawal]
+- Update pom.xml. [Vikram Agrawal]
+- Make localDir option mandatory for Rocksdb statestore. [Vikram
+  Agrawal]
+- RocksDb state store for Structured streaming. [Vikram Agrawal]
+- Initial commit. [indit-qubole]
+
+
