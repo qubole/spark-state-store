@@ -42,7 +42,7 @@ import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructT
 import org.apache.spark.util.Utils
 
 class RocksDbStateStoreSuite
-    extends StateStoreSuiteBase[RocksDbStateStoreProvider]
+  extends StateStoreSuiteBase[RocksDbStateStoreProvider]
     with BeforeAndAfter
     with PrivateMethodTester {
   type MapType = mutable.HashMap[UnsafeRow, UnsafeRow]
@@ -65,9 +65,9 @@ class RocksDbStateStoreSuite
   }
 
   def updateVersionTo(
-      provider: StateStoreProvider,
-      currentVersion: Int,
-      targetVersion: Int): Int = {
+                       provider: StateStoreProvider,
+                       currentVersion: Int,
+                       targetVersion: Int): Int = {
     var newCurrentVersion = currentVersion
     for (i <- newCurrentVersion until targetVersion) {
       newCurrentVersion = incrementVersion(provider, i)
@@ -84,17 +84,17 @@ class RocksDbStateStoreSuite
   }
 
   def checkLoadedVersions(
-      rocksDbWriteInstance: RocksDbInstance,
-      count: Int,
-      earliestKey: Long,
-      latestKey: Long): Unit = {
+                           rocksDbWriteInstance: RocksDbInstance,
+                           count: Int,
+                           earliestKey: Long,
+                           latestKey: Long): Unit = {
     assert(rocksDbWriteInstance.iterator(false).length === count)
   }
 
   def checkVersion(
-      rocksDbWriteInstance: RocksDbInstance,
-      version: Long,
-      expectedData: Map[String, Int]): Unit = {
+                    rocksDbWriteInstance: RocksDbInstance,
+                    version: Long,
+                    expectedData: Map[String, Int]): Unit = {
 
     val originValueMap = rocksDbWriteInstance
       .iterator(false)
@@ -282,6 +282,24 @@ class RocksDbStateStoreSuite
     }
   }
 
+  test("not setting localDir throws error") {
+    val sqlConf = new SQLConf
+    val dir = newDir()
+    val storeId = StateStoreProviderId(StateStoreId(dir, 0, 0), UUID.randomUUID)
+    sqlConf.setConfString(
+      SQLConf.STATE_STORE_PROVIDER_CLASS.key,
+      "org.apache.spark.sql.execution.streaming.state.RocksDbStateStoreProvider")
+    val storeConf = new StateStoreConf(sqlConf)
+    assert(
+      storeConf.providerClass ===
+        "org.apache.spark.sql.execution.streaming.state.RocksDbStateStoreProvider")
+    val hadoopConf = new Configuration()
+    val error = intercept[IllegalArgumentException] {
+      StateStore.get(storeId, keySchema, valueSchema, None, 0, storeConf, hadoopConf)
+    }.getMessage
+    assert(error.contains(s"The local directory in the executor nodes"))
+  }
+
   test("StateStore.get") {
     quietly {
       val dir = newDir()
@@ -290,6 +308,7 @@ class RocksDbStateStoreSuite
       sqlConf.setConfString(
         SQLConf.STATE_STORE_PROVIDER_CLASS.key,
         "org.apache.spark.sql.execution.streaming.state.RocksDbStateStoreProvider")
+      sqlConf.setConfString(RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR, newDir())
       val storeConf = new StateStoreConf(sqlConf)
       assert(
         storeConf.providerClass ===
@@ -354,6 +373,7 @@ class RocksDbStateStoreSuite
       SQLConf.STATE_STORE_PROVIDER_CLASS.key,
       "org.apache.spark.sql.execution.streaming.state.RocksDbStateStoreProvider")
     sqlConf.setConf(SQLConf.MIN_BATCHES_TO_RETAIN, 2)
+    sqlConf.setConfString(RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR, newDir())
     val storeConf = StateStoreConf(sqlConf)
     val hadoopConf = new Configuration()
     val provider = newStoreProvider(storeProviderId.storeId)
@@ -467,6 +487,7 @@ class RocksDbStateStoreSuite
       spark.conf.set(
         SQLConf.STATE_STORE_PROVIDER_CLASS.key,
         "org.apache.spark.sql.execution.streaming.state.RocksDbStateStoreProvider")
+      spark.conf.set(RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR, newDir())
       import spark.implicits._
       val inputData = MemoryStream[Int]
 
@@ -534,8 +555,8 @@ class RocksDbStateStoreSuite
   }
 
   override def getData(
-      provider: RocksDbStateStoreProvider,
-      version: Int = -1): Set[(String, Int)] = {
+                        provider: RocksDbStateStoreProvider,
+                        version: Int = -1): Set[(String, Int)] = {
     val reloadedProvider = newStoreProvider(provider.stateStoreId, provider.getLocalDir)
     if (version < 0) {
       reloadedProvider.latestIterator().map(rowsToStringInt).toSet
@@ -545,18 +566,18 @@ class RocksDbStateStoreSuite
   }
 
   def newStoreProvider(
-      opId: Long,
-      partition: Int,
-      dir: String = newDir(),
-      localDir: String = newDir(),
-      minDeltasForSnapshot: Int = SQLConf.STATE_STORE_MIN_DELTAS_FOR_SNAPSHOT.defaultValue.get,
-      numOfVersToRetainInMemory: Int = SQLConf.MAX_BATCHES_TO_RETAIN_IN_MEMORY.defaultValue.get,
-      hadoopConf: Configuration = new Configuration): RocksDbStateStoreProvider = {
+                        opId: Long,
+                        partition: Int,
+                        dir: String = newDir(),
+                        localDir: String = newDir(),
+                        minDeltasForSnapshot: Int = SQLConf.STATE_STORE_MIN_DELTAS_FOR_SNAPSHOT.defaultValue.get,
+                        numOfVersToRetainInMemory: Int = SQLConf.MAX_BATCHES_TO_RETAIN_IN_MEMORY.defaultValue.get,
+                        hadoopConf: Configuration = new Configuration): RocksDbStateStoreProvider = {
     val sqlConf = new SQLConf()
     sqlConf.setConf(SQLConf.STATE_STORE_MIN_DELTAS_FOR_SNAPSHOT, minDeltasForSnapshot)
     sqlConf.setConf(SQLConf.MAX_BATCHES_TO_RETAIN_IN_MEMORY, numOfVersToRetainInMemory)
     sqlConf.setConf(SQLConf.MIN_BATCHES_TO_RETAIN, 2)
-    sqlConf.setConfString("spark.sql.streaming.stateStore.rocksDb.localDir", localDir)
+    sqlConf.setConfString(RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR, localDir)
     val provider = new RocksDbStateStoreProvider
     provider.init(
       StateStoreId(dir, opId, partition),
@@ -569,9 +590,9 @@ class RocksDbStateStoreSuite
   }
 
   def fileExists(
-      provider: RocksDbStateStoreProvider,
-      version: Long,
-      isSnapshot: Boolean): Boolean = {
+                  provider: RocksDbStateStoreProvider,
+                  version: Long,
+                  isSnapshot: Boolean): Boolean = {
     val method = PrivateMethod[Path]('baseDir)
     val basePath = provider invokePrivate method()
     val fileName = if (isSnapshot) s"$version.snapshot" else s"$version.delta"
@@ -592,9 +613,9 @@ class RocksDbStateStoreSuite
   }
 
   def corruptFile(
-      provider: RocksDbStateStoreProvider,
-      version: Long,
-      isSnapshot: Boolean): Unit = {
+                   provider: RocksDbStateStoreProvider,
+                   version: Long,
+                   isSnapshot: Boolean): Unit = {
     val method = PrivateMethod[Path]('baseDir)
     val basePath = provider invokePrivate method()
     val fileName = if (isSnapshot) s"$version.snapshot" else s"$version.delta"

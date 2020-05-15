@@ -296,8 +296,10 @@ private[sql] class RocksDbStateStoreProvider extends StateStoreProvider with Log
     fm.mkdirs(baseDir)
     this.localDir = storeConfs.confs
       .getOrElse(
-        "spark.sql.streaming.stateStore.rocksDb.localDir",
-        Utils.createTempDir().getAbsolutePath)
+        RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR, throw new IllegalArgumentException(
+          "The local directory in the executor nodes where RocksDB puts files is not specified" +
+            s" Please use the conf `${RocksDbStateStoreProvider.ROCKSDB_STATE_STORE_LOCAL_DIR}` " +
+            "to set the local directory"))
   }
 
   /*
@@ -644,4 +646,9 @@ private[sql] class RocksDbStateStoreProvider extends StateStoreProvider with Log
       new Path(dirPath, version.get).toString
     }
   }
+}
+
+object RocksDbStateStoreProvider {
+
+  val ROCKSDB_STATE_STORE_LOCAL_DIR = "spark.sql.streaming.stateStore.rocksDb.localDir"
 }
