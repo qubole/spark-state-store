@@ -10,7 +10,7 @@ Moreover, GC pauses, executor failures, OOM issues are common when the size of s
 
 RocksDB is a storage engine with key/value interface based on levelDB. New writes are inserted into the memtable; when memtable fills up, it flushes the data on local storage. It supports both point lookups and range scans, and provides different types of ACID guarantees and is optimized for flash storage. Rocksdb based state storage for Structured streaming provides major performance improvements for stateful stream processing.
 
-Discussion on the PR raised against Apache Spark can be found [here](https://github.com/apache/spark/pull/24922)
+Discussion on the PR raised can be found [here](https://github.com/apache/spark/pull/24922)
 
 
 ## Downloading and Using the Connector
